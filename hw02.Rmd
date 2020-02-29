@@ -1,0 +1,204 @@
+---
+title: "STAT 425 Homework 02"
+author: "Yu Wu"
+date: "2/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+
+### part a.
+
+```{r}
+library('faraway')
+data(sat)
+
+fit <- lm(total ~ expend + ratio + salary, data = sat)
+summary(fit)
+```
+The p-value for $\beta_{salary} = 0$ is 0.0667, greater than 0.05. Thus we do not reject the null.   
+The p-value for $\beta_{salary} = \beta_{ratio}=\beta_{expend}=0$ is 0.01209, smaller than 0.05. Thus we reject the null. At least one of the predictors has effect on the response.
+
+### part b.
+
+```{R}
+fit2 <- lm(total ~ expend + ratio + salary + takers, data = sat)
+summary(fit2)
+anova(fit, fit2)
+```
+
+The p-value for $\beta_{takers} = 0$ is 2.61e-16 , smaller than 0.05. Thus we reject the null.   
+
+$$
+T =\frac{\hat{\beta_k-0}}{se(\hat{\beta_k})}=\frac{-2.9045}{0.2313 }=-12.557
+$$
+$$
+F = 157.74
+$$
+
+$$
+F = T^2
+$$
+
+From the calculations above we can see that the F-test is equivalent to the t-test.
+
+## Problem 2
+
+```{r}
+data("prostate")
+
+fit <- lm(lpsa~.,data=prostate)
+summary(fit)
+```
+
+### part a.   
+```{r}
+sum_fit <- summary(fit)
+beta_age <- sum_fit$coefficients['age', 1]
+beta_age_err <- sum_fit$coefficients['age', 2]
+
+df <- nrow(prostate) - ncol(prostate)
+
+t095 <- qt(0.975, df)
+t090 <- qt(0.95, df)
+
+ci95 <- beta_age + c(-1, 1)*t095*beta_age_err
+ci90 <- beta_age + c(-1, 1)*t090*beta_age_err
+
+
+ci90
+ci95
+```
+
+### part b.   
+```{r}
+fit2 <- lm(lpsa ~ lcavol + lweight + svi,data=prostate)
+anova(fit2, fit)
+```
+
+The p-value is larger than 0.05 and thus do not reject the null. Therefore the reduced model is better.
+
+### part c.   
+```{r}
+library(ellipse)
+plot(ellipse(fit, c(4,5)), type = 'l')
+points(0,0)
+```
+
+The origin stays in the ellipse, therefore we cannot reject the null hypothesis. 
+
+### part d.
+
+```{r}
+n.iter <- 5000
+tstats <- numeric(n.iter)
+for (i in 1:n.iter) {
+  temp_fit <- lm(lpsa ~ lcavol + lweight + sample(age) + lbph + svi + lcp + gleason + pgg45, data = prostate)
+  tstats[i] <- summary(temp_fit)$coefficients[4,3]
+}
+mean(abs(tstats) > abs(summary(fit)$coefficients[4,3]))
+```
+
+## Problem 3
+
+### part a.
+
+```{r}
+data('punting')
+fit <- lm(Distance ~ RStr + LStr + RFlex + LFlex, data = punting)
+summary(fit)
+```
+ All of the predictors have p-value greater than 0.05, thus none of them is significant at 5% level.
+ 
+### part b.
+
+```{r}
+fit2 <- lm(Distance ~ 1, data = punting)
+anova(fit2, fit)
+```
+
+The p-value for the F-test is 0.01902, smaller than 0.05. Therefore at least one of them is significant. 
+
+### part c. 
+
+```{r}
+fit3 <- lm(Distance ~ I(RStr + LStr) + RFlex+LFlex, data=punting)
+anova(fit3, fit)
+```
+
+The p-value for the F-test is smaller than 0.05, so we cannot reject the null that Right and Left strength have the same effect. 
+
+### part d.
+
+```{r}
+plot(ellipse(fit, c(2,3), level = 0.95), type = 'l')
+points(0,0)
+```
+
+Since the origin lies within the ellipse, we cannot reject the null hypothesis. 
+
+### part e.
+
+```{r}
+
+fit4 <- lm(Distance ~ I(RStr + LStr) + RFlex + LFlex, data=punting)
+fit5 <- lm(Distance ~ I(RStr + LStr), data=punting)
+anova(fit4, fit5)
+
+```
+
+Since the p-value of the F-Test is greater than 0.05, we cannot reject the null and total leg strength defined by adding the right and left leg strengths is sufficient to predict the response.
+
+## Problem 5
+
+### part a.
+
+```{r}
+data(prostate) 
+fit=lm(lpsa~., data = prostate) 
+x=data.frame(lcavol = 1.44692, lweight =  3.62301, age = 65, lbph=0.3001, svi = 0, lcp = -0.79851, gleason = 7, pgg45 = 15) 
+predict(fit, x, interval="prediction")
+```
+
+### part b.
+
+```{r}
+
+data(prostate) 
+fit=lm(lpsa~., data = prostate) 
+x=data.frame(lcavol = 1.44692, lweight =  3.62301, age = 20, lbph=0.3001, svi = 0, lcp = -0.79851, gleason = 7, pgg45 = 15) 
+predict(fit, x, interval="prediction")
+```
+
+The reason of new CI being wider is that age is smaller and further away from mean. 
+
+
+### part c.
+
+```{r}
+summary(fit)
+```
+The insignificant variables are age, lbph, lcp, gleason, pgg45.
+
+```{r}
+fit=lm(lpsa ~ lcavol+lweight+svi, data = prostate) 
+predict(fit, x, interval="prediction")
+```
+
+The CI becomes narrower. I would prefer the original model since the reduced model might generate wrong results when dealing with much younger or older people. 
+
+
+
+
+
+
+
+
+
+
+
+

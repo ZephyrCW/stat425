@@ -1,0 +1,165 @@
+---
+title: "Stat425 HW01"
+author: "Yu Wu yuw5"
+date: "2/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+**1. Problem 1:** The data set prostate from the faraway library, is from a study on 97 men with
+who were due to receive a radical prostatectomy. Make a numerical and graphical summary
+of the data. Comment on your results.
+
+```{r}
+library(faraway)
+library(ggplot2)
+summary(prostate)
+
+pairs(prostate)
+```
+
+
+
+**2. Problem 2:** Show that for the SLR model, the coefficient of determination $R^2$ is equal to the square of the correlation coefficient $r_{XY}^2$.
+
+
+\begin{equation}
+\begin{split}
+
+R^2 &= \frac{FSS}{TSS} \\
+&= \frac{\Sigma(\hat{y}-\bar{y})^2}{\Sigma(\bar{x}-\bar{x})^2} \\
+\\
+\hat{y_i} &= \hat{\beta_0}+\hat{\beta_1x_i} \\
+\\
+\hat{\beta_0} &= \bar{y}-\hat{\beta_1\bar{x}} \\
+\\
+\hat{\beta_1} &= \frac{S_{XY}}{S_{XX}} \\
+&= \frac{\Sigma(x_i-\bar{x})\Sigma(y_i-\bar{y})}{\Sigma(x_i-\bar{x})^2} \\
+\\
+\Sigma(\hat{y_i}-\bar{y})^2 &= \Sigma(\hat{\beta_0}+\hat{\beta_1}x_i-\bar{y})^2 \\
+&= \Sigma{\bar{y}-\hat{\beta_1}\bar{x}+\hat{\beta_1}x_i-\bar{y}} \\
+&= \hat{\beta_1}^2\Sigma(x_i-\bar{x})^2 \\
+&= \frac{[\Sigma(x_i-\bar{x})\Sigma(y_i-\bar{y})]^2}{[\Sigma(x_i-\bar{x})^2]^2} \Sigma(x_i-\bar{x})^2 \\
+&= \frac{[\Sigma(x_i-\bar{x})\Sigma(y_i-\bar{y})]^2}{\Sigma(x_i-\bar{x})^2} \\
+\\
+R^2 &= \frac{\Sigma(\hat{y}-\bar{y})^2}{\Sigma(\bar{x}-\bar{x})^2} \\
+&= \frac{[\Sigma(x_i-\bar{x})\Sigma(y_i-\bar{y})]^2}{\Sigma(x_i-\bar{x})^2 \Sigma(y_i-\bar{y})^2} \\
+&= \frac{S_{XY}^2}{S_{XX}S_{YY}} \\
+&= r_{XY}^2
+
+\end{split}
+\end{equation}
+
+
+
+**3. Problem 3:** The manager of the purchasing department of a large company would like to
+develop a regression model to predict the average amount of time it takes to process a given
+number of invoices. Over a 30-day period, data are collected on the number of invoices
+processed and the total time taken (in hours). The data are available in the file invoices.txt.
+The following model was fit to the data: Y = β0 + β1x + e, where Y is the processing time
+and x is the number of invoices.
+
+(a) Plot the data and comment on the results.   
+
+```{r}
+invoice <- read.table('invoices.txt', header = TRUE)
+
+ggplot(invoice, aes(Invoices,Time)) + geom_point(shape=1) + 
+  geom_smooth(method=lm, se=FALSE, lwd=1.2)
+```
+
+The ls model fits the dataset well. 
+
+(b) Find a 95% confidence interval for the start-up time, ie., β0.  
+
+```{r}
+out <- lm(Time~Invoices, data = invoice)
+summary(out)
+predict(out, newdata=data.frame(Invoices = 0), interval="confidence")
+```
+
+(c) Suppose that a best practice benchmark for the average processing time for an additional
+invoice is 0.01 hours (pr. 0.6 minutes). Test the null hypothesis H0 : β1 = 0.01 against
+a two-sided alternative. Interpret your result.   
+
+```{r}
+confint(out, 'Invoices', levels=0.95)
+```
+
+The value of $\beta_1$ of $H_0$ is in the confidence interval thus we do not reject the null hypothesis.
+
+(d) Find a point estimate and a 95% prediction interval for the time taken to process 130
+invoices.   
+
+```{r}
+predict(out, newdata=data.frame(Invoices = 130), interval="prediction")
+```
+
+
+
+**5. Problem 5:** A story by James R. Hagerty entitled With Buyers Sidelined, Home Prices Slide
+published in the Thursday October 25, 2007 edition of the Wall Street Journal contained data
+on so-called fundamental housing indicators in major real estate markets across the US. The
+author argues that. . . prices are generally falling and overdue loan payments are piling up.
+Thus, we shall consider data presented in the article on:
+Y = Percentage change in average price from July 2006 to July 2007 (based on the S& P/CaseShiller national housing index); and
+x= Percentage of mortgage loans 30 days or more overdue in latest quarter (based on data
+from Equifax and Moody’s).
+The data are available in the file indicators.txt. Fit the following model to the data: Y =
+β0 + β1x + e. Complete the following tasks:
+
+(a) Calculate the R2 and adjusted R2
+for the SLR model. Provide an interpretation of both
+quantities.
+
+```{r}
+indicators <- read.table('indicators.txt', header = TRUE)
+out <- lm(PriceChange~LoanPaymentsOverdue, data = indicators)
+summary(out)
+summary(out)$r.sq
+summary(out)$adj.r
+
+```
+
+(b) Find a 95% confidence interval for the slope of the regression model, β1 . On the basis of
+this confidence interval decide whether there is evidence of a significant negative linear
+association.
+
+```{r}
+confint(out, 'LoanPaymentsOverdue', level = 0.95)
+```
+
+(c) Use the fitted regression model to estimate E(Y |X = 4). Find a 95% confidence interval
+for E(Y |X = 4). Is 0% a feasible value for E(Y |X = 4)? Give a reason to support your
+answer.
+
+```{r}
+predict(out, data.frame(LoanPaymentsOverdue = 4), interval="confidence")
+```
+
+0% is not a feasible value because it is not in the confidence interval. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
